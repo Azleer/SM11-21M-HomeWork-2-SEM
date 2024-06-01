@@ -46,7 +46,7 @@ public:
         b2 <<   5179.0/57600.0,   0.0,              7571.0/16695,   393./640,   -92097./339200, 187./2100,  1.0/40;
         steps <<0,              1.0/5.0,          3.0/10,         4.0/5,      8./9,           1,          1;
 
-        m_step = 0.01;
+        m_step = 2;
         m_max = 0.0001;
         m_min = 0.0000001;
     }
@@ -71,9 +71,9 @@ public:
             x2 = b2 * tmp;
             diff = (x1 - x2).cwiseAbs().maxCoeff() * m_step;
             if (diff > m_max)
-                m_step /= 2;
+                m_step /= 1.1;
             if (diff < m_min)
-                m_step *= 2;
+                m_step *= 1.1;
             std::cout << "Step: " << m_step << endl;
         }
 
@@ -156,7 +156,7 @@ int main()
     val << (system_1.get_d());
     system_1.InitValues(val, 0);
     double err = 0;
-    while (system_1.t() < 1)
+    while (system_1.t() < 5)
     {
         system_1.CalcStep();
         Eigen::VectorXd vals = system_1.vals();
