@@ -45,13 +45,17 @@ public:
         b1 <<   35.0/384.0,       0.0,              500.0/1113,     125.0/192,  -2187.0/6784,   11.0/84,    0;
         b2 <<   5179.0/57600.0,   0.0,              7571.0/16695,   393./640,   -92097./339200, 187./2100,  1.0/40;
         steps <<0,              1.0/5.0,          3.0/10,         4.0/5,      8./9,           1,          1;
+
+        m_step = 0.01;
+        m_max = 0.0001;
+        m_min = 0.0000001;
     }
 
     void CalcStep()
     {
         Eigen::MatrixXd tmp(7, m_values.size());
         Eigen::VectorXd x1, x2;
-        double diff = 1.0;
+        double diff = 1;
         do
         {
             Eigen::VectorXd val = m_values;
@@ -60,21 +64,22 @@ public:
             {
                 Eigen::VectorXd val = m_values;
                 for (int j = 0; j < i; j++)
-                {
-                    val += tmp.row(j)*A(i,j)*m_step;
-                }
-                tmp.row(i) = RecalcSystem(m_time+steps(i)*m_step, val);
+                    val += tmp.row(j) * A(i,j) * m_step;
+                tmp.row(i) = RecalcSystem(m_time + steps(i) * m_step, val);
             }
-            x1 = b1*tmp;
-            x2 = b2*tmp;
-
-            diff =  (x1-x2).cwiseAbs().maxCoeff() * m_step;
-            //std::cout << (x1-x2).cwiseAbs().maxCoeff() << std::endl;
-            if (diff > m_max) m_step /=1.1;
-            if (diff < m_min) m_step *=1.1;
+            x1 = b1 * tmp;
+            x2 = b2 * tmp;
+            diff = (x1 - x2).cwiseAbs().maxCoeff() * m_step;
+            if (diff > m_max)
+                m_step /= 2;
+            if (diff < m_min)
+                m_step *= 2;
+            std::cout << "Step: " << m_step << endl;
         }
-        while(diff > m_max);
-        m_values = m_values + (x1 * m_step);
+
+        while (diff > m_max);
+
+        m_values = m_values + x1 * m_step;
         m_time += m_step;
     }
 
@@ -91,7 +96,7 @@ protected:
     virtual Eigen::VectorXd RecalcSystem(double time, Eigen::VectorXd& val) = 0;
     Eigen::VectorXd m_values, steps;
     double m_time;
-    double m_max = 1.0, m_min = 0.001;
+    double m_max = 0.1, m_min = 0.0001;
 
     double m_step = 0.01;
     Eigen::Matrix<double, 7, 7> A;
@@ -105,7 +110,7 @@ class HomeWork_Task_1 : public DPSolver
     virtual Eigen::VectorXd RecalcSystem(double time, Eigen::VectorXd& val) override
     {
         Eigen::VectorXd ret (1);
-        ret[0] = a*m_time - b*m_values[0];
+        ret[0] = a*time - b*val[0];
         return ret;
     }
 
@@ -113,7 +118,7 @@ public:
     double get_d() {return d;}
     double analytical_Solution (double t)
     {
-        return a/b * (t - 1/b) + (d+a/pow(b,2))*exp(-b*t);
+       return a/b * (t - 1.0/b) + (d+(a/pow(b,2.0)))*exp(-b*t);
     }
     void set_abd (double a1, double b1, double d1)
     {
@@ -126,8 +131,8 @@ class HomeWork_Task_2 : public DPSolver
     virtual Eigen::VectorXd RecalcSystem(double time, Eigen::VectorXd& val) override
     {
         Eigen::VectorXd ret (2);
-        ret[0] = (9.0*m_values[0]) + (24.0*m_values[1]) + (5.0*cos(m_time)) - ((1.0/3.0)*sin(m_time));
-        ret[1] = (-24.0*m_values[0]) - (51.0*m_values[1]) - (9.0*cos(m_time)) + ((1.0/3.0)*sin(m_time));
+        ret[0] = (9.0*val[0]) + (24.0*val[1]) + (5.0*cos(time)) - ((1.0/3.0)*sin(time));
+        ret[1] = (-24.0*val[0]) - (51.0*val[1]) - (9.0*cos(time)) + ((1.0/3.0)*sin(time));
         return ret;
 
     }
@@ -144,30 +149,30 @@ int main()
 {
 
 //-----------------УРАВНЕНИЕ 1---------------------//
-//    HomeWork_Task_1 system_1;
-//    Eigen::VectorXd val(1);
-//    system_1.set_abd(2.5, 1.3, 0.5);
+    HomeWork_Task_1 system_1;
+    Eigen::VectorXd val(1);
+    system_1.set_abd(2.5, 1.3, 0.5);
 
-//    val << (system_1.get_d());
-//    system_1.InitValues(val, 0);
-//    double err = 0;
-//    while (system_1.t() < 1)
-//    {
-//        system_1.CalcStep();
-//        Eigen::VectorXd vals = system_1.vals();
-//        std::cout << "y=" << vals[0]
-//                          << "\tu=" << system_1.analytical_Solution(system_1.t())
-//                          << "\tt=" << system_1.t() << std::endl;
-//        double sys_err = abs(system_1.analytical_Solution(system_1.t()) - vals[0]);
+    val << (system_1.get_d());
+    system_1.InitValues(val, 0);
+    double err = 0;
+    while (system_1.t() < 1)
+    {
+        system_1.CalcStep();
+        Eigen::VectorXd vals = system_1.vals();
+        std::cout << "y=" << vals[0]
+                          << "\tu=" << system_1.analytical_Solution(system_1.t())
+                          << "\tt=" << system_1.t() << std::endl;
+        double sys_err = abs(system_1.analytical_Solution(system_1.t()) - vals[0]);
 
-//        if (err < sys_err )
-//        {
-//            err = sys_err;
-//        }
-//    }
-//        std::cout << std::endl << "max(|u - y|)=" << err << std::endl << std::endl;
+        if (err < sys_err )
+        {
+            err = sys_err;
+        }
+    }
+        std::cout << std::endl << "max(|u - y|)=" << err << std::endl << std::endl;
 
-
+std::cout << "SYS2" << std::endl;
 
 //------------------СИСТЕМА УРАВНЕНИЙ 2-----------//
     HomeWork_Task_2 system_2;

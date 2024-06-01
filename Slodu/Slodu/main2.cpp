@@ -55,7 +55,7 @@ public:
 private:
     std::vector<double> m_time, m_x, m_v;
     double k_x[4], k_v[4];
-    double m_step = 0.01;
+    double m_step = 0.001;
 };
 
 int main()

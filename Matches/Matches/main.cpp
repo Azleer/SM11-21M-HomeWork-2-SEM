@@ -54,9 +54,11 @@ int main()
     std::vector<cv::KeyPoint> keys1, keys2;
     std::vector<cv::DMatch> matches;
     cv::Mat imgeWithKeypoints;
-    detector = cv::ORB::create();
-    extractor = cv::ORB::create();
 
+    ////////////////////////////////////////
+    detector = cv::BRISK::create();
+    extractor = cv::BRISK::create();
+    ///////////////////////////////////////
 
     bool stop = false;
     double rate = cap.get(cv::CAP_PROP_FPS);
