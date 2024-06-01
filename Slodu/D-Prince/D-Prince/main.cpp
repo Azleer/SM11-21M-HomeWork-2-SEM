@@ -71,9 +71,9 @@ public:
             x2 = b2 * tmp;
             diff = (x1 - x2).cwiseAbs().maxCoeff() * m_step;
             if (diff > m_max)
-                m_step /= 1.1;
+                m_step /= 1.2;
             if (diff < m_min)
-                m_step *= 1.1;
+                m_step *= 1.2;
             std::cout << "Step: " << m_step << endl;
         }
 
