@@ -76,7 +76,7 @@ protected:
     virtual std::vector<double> RecalcSystem(double time) =0;
     std::vector<double> m_values;
     double m_time;
-    double m_step = 0.0001;
+    double m_step = 0.00001;
 };
 
 class TestRunge4 : public Runge4Solver
